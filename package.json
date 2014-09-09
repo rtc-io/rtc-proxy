@@ -4,7 +4,8 @@
   "description": "Proxy WebRTC objects that can be used to provide a JS introspection layer on natively created WebRTC objects",
   "main": "index.js",
   "scripts": {
-    "test": "testling -x ./.travis/start-$BROWSER.sh"
+    "test": "testling -x ./.travis/start-$BROWSER.sh",
+    "gendocs": "gendocs > README.md"
   },
   "repository": {
     "type": "git",

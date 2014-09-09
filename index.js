@@ -1,5 +1,22 @@
 var EventEmitter = require('eventemitter3');
 
+/**
+  # rtc-proxy
+
+  This is a set of simple proxy classes that are designed to provide a
+  minimal layer between a WebRTC plugin and browser run JS.
+
+  ## Why?
+
+  This package exists because during the development of an iOS plugin, we
+  have found that frameworks such as angular don't work as nicely with
+  the plugin interface.  Primarily the problem is that Angular is unable
+  to get any metainformation about the object (using `Object.keys` or
+  similar).
+
+  This layer provides that information when required.
+
+**/
 module.exports = function(prot, methods, attributes, events) {
 
   function capEvents(target, name) {

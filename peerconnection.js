@@ -17,6 +17,7 @@ var prot = require('./index.js')(
   [
     'createOffer',
     'createAnswer',
+    'createDataChannel',
     'setLocalDescription',
     'setRemoteDescription',
     'updateIce',

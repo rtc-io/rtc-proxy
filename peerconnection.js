@@ -41,7 +41,8 @@ var prot = require('./index.js')(
     'signalingstatechange',
     'addstream',
     'removestream',
-    'iceconnectionstatechange'
+    'iceconnectionstatechange',
+    'datachannel'
   ]
 );
 

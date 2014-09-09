@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/rtc-io/rtc-proxy/issues"
   },
-  "homepage": "https://github.com/rtc-io/rtc-proxy"
+  "homepage": "https://github.com/rtc-io/rtc-proxy",
+  "dependencies": {
+    "eventemitter3": "^0.1.5"
+  }
 }

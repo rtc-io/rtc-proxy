@@ -1,83 +1,120 @@
 var test = require('tape');
-var quickconnect = require('../');
+var quickconnect = require('rtc-quickconnect');
 var connections = [];
-var roomId = require('uuid').v4();
-var plugins = require('./helpers/plugins');
 var dcs = [];
+var room = require('uuid').v4();
+var signallingServer = location.origin;
+var plugins = require('./helpers/plugins');
 
-// require('cog/logger').enable('rtc-quickconnect');
+// require('cog/logger').enable('*');
 
-test('quickconnect:0', function(t) {
-  t.plan(1);
-  connections[0] = quickconnect(location.origin, { room: roomId, plugins: plugins });
-  connections[0].reactive();
-  connections[0].once('connected', t.pass.bind(t, 'connected'));
+test('create connector 0', function(t) {
+  t.plan(3);
+  t.ok(connections[0] = quickconnect(signallingServer, {
+    room: room,
+    plugins: plugins
+  }), 'created');
+
+  t.equal(typeof connections[0].createDataChannel, 'function', 'has a createDataChannel function');
+
+  // create the data channel
+  connections[0].createDataChannel('test');
+  setTimeout(t.pass.bind(t, 'dc created'), 500);
 });
 
-test('quickconnect:1', function(t) {
-  t.plan(1);
-  connections[1] = quickconnect(location.origin, { room: roomId, plugins: plugins });
-  connections[1].reactive();
-  connections[1].once('connected', t.pass.bind(t, 'connected'));
+test('create connector 1', function(t) {
+  t.plan(3);
+  t.ok(connections[1] = quickconnect(signallingServer, {
+    room: room,
+    plugins: plugins
+  }), 'created');
+
+  t.equal(typeof connections[1].createDataChannel, 'function', 'has a createDataChannel function');
+
+  // create the data channel
+  connections[1].createDataChannel('test');
+  setTimeout(t.pass.bind(t, 'dc created'), 500);
 });
 
-test('call started', function(t) {
-  t.plan(2);
-  connections[0].once('call:started', function(id) {
-    t.equal(id, connections[1].id, 'connection:0 established call with connection:1');
-  });
+test('check call active', function(t) {
+  t.plan(connections.length * 3);
 
-  connections[1].once('call:started', function(id) {
-    t.equal(id, connections[0].id, 'connection:1 established call with connection:0');
-  });
-});
+  connections.forEach(function(conn, index) {
+    conn.waitForCall(connections[index ^ 1].id, function(err, pc) {
+      t.ifError(err, 'call available');
+      t.ok(pc, 'have peer connection');
 
-test('create a datachannel on each of the connections', function(t) {
-  t.plan(connections.length * 2);
-
-  connections.forEach(function(connection, index) {
-    connection.once('channel:opened:test', function(id, dc) {
-      t.pass('received data channel for connection:' + index);
-      dcs[index] = dc;
+      // check connection state valid
+      t.ok(['connected', 'completed'].indexOf(pc.iceConnectionState) >= 0, 'call connected');
     });
   });
+});
 
-  connections.forEach(function(connection) {
-    connection.createDataChannel('test');
-    t.pass('data channel created');
+test('data channels opened', function(t) {
+  t.plan(4);
+  connections[0].requestChannel(connections[1].id, 'test', function(err, dc) {
+    t.ifError(err);
+    dcs[0] = dc;
+    t.equal(dc.readyState, 'open', 'connection test dc 0 open');
+  });
+
+  connections[1].requestChannel(connections[0].id, 'test', function(err, dc) {
+    t.ifError(err);
+    dcs[1] = dc;
+    t.equal(dc.readyState, 'open', 'connection test dc 1 open');
   });
 });
 
-test('can send a message from dc:0 --> dc:1', function(t) {
-  t.plan(2);
+test('dc 0 send', function(t) {
   dcs[1].onmessage = function(evt) {
-    t.ok(evt, 'onmessage fired');
-    t.equal(evt.data, 'hello', 'matched expected');
-
+    t.equal(evt.data, 'hi', 'dc:1 received hi');
     dcs[1].onmessage = null;
-  }
+  };
 
-  dcs[0].send('hello');
+  t.plan(1);
+  dcs[0].send('hi');
 });
 
-test('can send a message from dc:1 --> dc:0', function(t) {
-  t.plan(2);
+test('dc 1 send', function(t) {
   dcs[0].onmessage = function(evt) {
-    t.ok(evt, 'onmessage fired');
-    t.equal(evt.data, 'hi', 'matched expected');
-
+    t.equal(evt.data, 'hi', 'dc:1 received hi');
     dcs[0].onmessage = null;
-  }
+  };
 
+  t.plan(1);
   dcs[1].send('hi');
 });
 
-test('cleanup', function(t) {
-  t.plan(connections.length);
-  connections.splice(0).forEach(function(conn) {
-    conn.once('disconnected', t.pass.bind(t, 'disconnected'));
-    conn.close();
+test('close connection 0 and wait for dc close notifications', function(t) {
+  var timer = setTimeout(t.fail.bind(t, 'timed out'), 10000);
+  var closedCount = 0;
+
+  function handleClose(peerId, datachannel, label) {
+    t.equal(label, 'test', 'label == test');
+    t.ok(datachannel.readyState, '2nd arg is a data channel');
+    t.equal(typeof peerId, 'string', '1st args is a string');
+
+    closedCount += 1;
+    if (closedCount === 4) {
+      clearTimeout(timer);
+    }
+  }
+
+  t.plan(12);
+  connections.forEach(function(conn, idx) {
+    conn.once('channel:closed', handleClose);
+    conn.once('channel:closed:test', handleClose);
   });
 
+  connections[0].close();
+});
+
+test('release references', function(t) {
+  t.plan(1);
+
+  connections[1].close();
+  connections = [];
   dcs = [];
+
+  t.pass('done');
 });

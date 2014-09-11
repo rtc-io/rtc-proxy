@@ -1,3 +1,4 @@
+var proxy = require('./index');
 var ProxyMediaStream = require('./mediastream');
 
 function ProxyPeerConnection(original) {
@@ -6,11 +7,23 @@ function ProxyPeerConnection(original) {
   }
 
   this.__orig = original;
+
+  proxy(
+    this,
+    [],
+    [
+      [ 'localDescription', { enumerable: true } ],
+      [ 'remoteDescription', { enumerable: true } ],
+      [ 'signalingState', { enumerable: true } ],
+      [ 'iceGatheringState', { enumerable: true } ],
+      [ 'iceConnectionState', { enumerable: true } ]
+    ]
+  );
 }
 
 module.exports = ProxyPeerConnection;
 
-var prot = require('./index.js')(
+var prot = proxy(
   ProxyPeerConnection.prototype,
 
   // methods
@@ -26,13 +39,7 @@ var prot = require('./index.js')(
   ],
 
   // properties [ name, readonly? ]
-  [
-    [ 'localDescription', true ],
-    [ 'remoteDescription', true ],
-    [ 'signalingState', true ],
-    [ 'iceGatheringState', true ],
-    [ 'iceConnectionState', true ]
-  ],
+  [],
 
   // events
   [

@@ -1,14 +1,24 @@
+var proxy = require('./index');
+
 function ProxyMediaStream(original) {
   if (! (this instanceof ProxyMediaStream)) {
     return new ProxyMediaStream(original);
   }
 
   this.__orig = original;
+
+  proxy(
+    this,
+    [],
+    [
+      [ 'id', { enumerable: true } ],
+      [ 'ended', { enumerable: true } ]
+    ]
+  );
 }
 
 module.exports = ProxyMediaStream;
-
-var prot = require('./index.js')(
+var prot = proxy(
   ProxyMediaStream.prototype,
   // methods
   [
@@ -19,11 +29,8 @@ var prot = require('./index.js')(
     'removeTrack'
   ],
 
-  // properties [ name, readonly? ]
-  [
-    [ 'id', true ],
-    [ 'ended', true ]
-  ],
+  // properties [ name, attributes ]
+  [],
 
   // events
   [

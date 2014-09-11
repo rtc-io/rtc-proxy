@@ -1,4 +1,5 @@
 var EventEmitter = require('eventemitter3');
+var extend = require('cog/extend');
 
 /**
   # rtc-proxy
@@ -55,20 +56,21 @@ module.exports = function(prot, methods, attributes, events) {
   // patch properties
   (attributes || []).forEach(function(attrData) {
     var key = attrData[0];
-    var readonly = attrData[1];
-    var gs = {
+    var flags = extend({
       get: function() {
-        return this.__orig[key];
+        return this.__orig && this.__orig[key];
       }
-    };
+    }, attrData[1]);
 
-    if (! readonly) {
-      gs.set = function(value) {
-        this.__orig[key] = value;
-      };
+    if (flags.writable && (! flags.set)) {
+      flags.set = function(value) {
+        if (this.__orig) {
+          this.__orig[key] = value;
+        }
+      }
     }
 
-    Object.defineProperty(prot, key, gs);
+    Object.defineProperty(prot, key, flags);
   });
 
   (events || []).forEach(function(name) {
@@ -89,13 +91,15 @@ module.exports = function(prot, methods, attributes, events) {
     });
   });
 
-  prot.addEventListener = function(name, handler) {
-    capEvents(this, name).on(name, handler);
-  };
+  if (events) {
+    prot.addEventListener = function(name, handler) {
+      capEvents(this, name).on(name, handler);
+    };
 
-  prot.removeEventListener = function(name, handler) {
-    emitter(this).removeListener(name, handler);
-  };
+    prot.removeEventListener = function(name, handler) {
+      emitter(this).removeListener(name, handler);
+    };
+  }
 
   return prot;
 };

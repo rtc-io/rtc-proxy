@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/rtc-io/rtc-proxy",
   "dependencies": {
+    "cog": "^1.0.0",
     "eventemitter3": "^0.1.5"
   },
   "devDependencies": {

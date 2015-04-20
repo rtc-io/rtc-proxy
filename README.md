@@ -6,7 +6,7 @@ minimal layer between a WebRTC plugin and browser run JS.
 
 [![NPM](https://nodei.co/npm/rtc-proxy.png)](https://nodei.co/npm/rtc-proxy/)
 
-[![Build Status](https://img.shields.io/travis/rtc-io/rtc-proxy.svg?branch=master)](https://travis-ci.org/rtc-io/rtc-proxy) [![experimental](https://img.shields.io/badge/stability-experimental-red.svg)](https://github.com/dominictarr/stability#experimental) 
+[![Build Status](https://api.travis-ci.org/rtc-io/rtc-proxy.svg?branch=master)](https://travis-ci.org/rtc-io/rtc-proxy) [![deprecated](https://img.shields.io/badge/stability-deprecated-aa8899.svg)](https://github.com/dominictarr/stability#deprecated) 
 
 ## Why?
 
@@ -22,7 +22,7 @@ This layer provides that information when required.
 
 ### Apache 2.0
 
-Copyright 2014 National ICT Australia Limited (NICTA)
+Copyright 2015 National ICT Australia Limited (NICTA)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
